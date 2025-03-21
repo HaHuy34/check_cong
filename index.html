@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="shortcut icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Google_Docs_2020_Logo.svg/436px-Google_Docs_2020_Logo.svg.png" type="image/x-icon">
+    <title>Sắp xếp công nhân</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        textarea,
+        button {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        textarea {
+            border-radius: 20px;
+        }
+
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        table {
+            width: 30%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background: #f4f4f4;
+        }
+
+        td {
+            user-select: all;
+        }
+
+        .edit {
+            background: #fffbcc;
+        }
+
+        .bx-copy {
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .sc-a {
+            border-radius: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Nhập dữ liệu</h2>
+    <textarea id="inputData" rows="5" placeholder="Dán dữ liệu vào đây...✍️"></textarea>
+    <button class="sc-a" onclick="processData()">Xử lý</button>
+    <!-- <button onclick="copyData()">Sao chép dữ liệu</button> -->
+
+    <h2>Kết quả</h2>
+    <table>
+        <thead>
+            <tr>
+                <th onclick="copyColumn(0)">Tên <i class='bx bx-copy'></i></th>
+                <th onclick="copyColumn(1)">Công <i class='bx bx-copy'></i></th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <script>
+        function processData() {
+            let input = document.getElementById("inputData").value.trim();
+            if (input === "") {
+                alert("Vui lòng nhập dữ liệu!");
+                return;
+            }
+
+            let rows = input.split(/\n/);
+            let data = [];
+
+            rows.forEach(row => {
+                // Xóa emoji và dấu cách thừa
+                row = row.replace(/[\uD800-\uDFFF]./g, "").trim();
+
+                // Tách thành 3 cột dựa vào khoảng trắng lớn
+                let columns = row.split(/\s{2,}/).map(col => col.trim());
+
+                columns.forEach(col => {
+                    let match = col.match(/(.+?)\s*-\s*([\d.]+)\s*công/i);
+                    if (match) {
+                        let name = match[1].trim();
+                        let cong = parseFloat(match[2].trim());
+                        if (!isNaN(cong)) {
+                            data.push({ name, cong });
+                        }
+                    }
+                });
+            });
+
+            // Nếu không có dữ liệu hợp lệ, báo lỗi
+            if (data.length === 0) {
+                alert("Không có dữ liệu hợp lệ! Vui lòng kiểm tra lại.");
+                return;
+            }
+
+            // Sắp xếp theo số công từ cao đến thấp
+            data.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+
+
+            let tableBody = document.getElementById("tableBody");
+            tableBody.innerHTML = "";
+            data.forEach(({ name, cong }) => {
+                let row = document.createElement("tr");
+
+                let nameCell = document.createElement("td");
+                nameCell.textContent = name;
+                row.appendChild(nameCell);
+
+                let congCell = document.createElement("td");
+                congCell.contentEditable = "true";
+                congCell.classList.add("edit");
+                congCell.textContent = cong;
+                row.appendChild(congCell);
+
+                tableBody.appendChild(row);
+            });
+
+            // Hiển thị thông báo thành công
+            alert("Dữ liệu đã được xử lý thành công!");
+        }
+
+        function copyData() {
+            let tableBody = document.getElementById("tableBody");
+            let rows = tableBody.querySelectorAll("tr");
+            let textToCopy = "Tên - Công\n";
+
+            rows.forEach(row => {
+                let cols = row.querySelectorAll("td");
+                let name = cols[0].textContent.trim();
+                let cong = cols[1].textContent.trim();
+                textToCopy += `${name} - ${cong} công\n`;
+            });
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert("Dữ liệu đã được sao chép thành công!");
+            }).catch(err => {
+                alert("Lỗi khi sao chép dữ liệu!");
+                console.error(err);
+            });
+        }
+        function copyColumn(columnIndex) {
+            let tableBody = document.getElementById("tableBody");
+            let rows = tableBody.querySelectorAll("tr");
+            let textToCopy = "";
+
+            rows.forEach(row => {
+                let cols = row.querySelectorAll("td");
+                if (cols[columnIndex]) {
+                    textToCopy += cols[columnIndex].textContent.trim() + "\n";
+                }
+            });
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert(`Dữ liệu cột ${columnIndex === 0 ? "Tên" : "Công"} đã được sao chép!`);
+            }).catch(err => {
+                alert("Lỗi khi sao chép dữ liệu!");
+                console.error(err);
+            });
+        }
+
+    </script>
+    <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
+</body>
+
+</html>
