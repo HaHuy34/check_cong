@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="shortcut icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Google_Docs_2020_Logo.svg/436px-Google_Docs_2020_Logo.svg.png" type="image/x-icon">
+    <link rel="shortcut icon"
+        href="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Google_Docs_2020_Logo.svg/436px-Google_Docs_2020_Logo.svg.png"
+        type="image/x-icon">
     <title>Sắp xếp công nhân</title>
     <style>
         body {
@@ -161,7 +163,9 @@
                 let cols = row.querySelectorAll("td");
                 let name = cols[0].textContent.trim();
                 let cong = cols[1].textContent.trim();
-                textToCopy += `${name} - ${cong} công\n`;
+
+                // Thêm dấu ' trước số công để tránh lỗi định dạng ngày
+                textToCopy += `${name} - '${cong} công\n`;
             });
 
             navigator.clipboard.writeText(textToCopy).then(() => {
@@ -171,6 +175,7 @@
                 console.error(err);
             });
         }
+
         function copyColumn(columnIndex) {
             let tableBody = document.getElementById("tableBody");
             let rows = tableBody.querySelectorAll("tr");
@@ -179,7 +184,14 @@
             rows.forEach(row => {
                 let cols = row.querySelectorAll("td");
                 if (cols[columnIndex]) {
-                    textToCopy += cols[columnIndex].textContent.trim() + "\n";
+                    let value = cols[columnIndex].textContent.trim();
+
+                    // Nếu là cột Công, thay dấu "." thành ","
+                    if (columnIndex === 1) {
+                        value = value.replace(".", ",");
+                    }
+
+                    textToCopy += value + "\n";
                 }
             });
 
@@ -190,6 +202,9 @@
                 console.error(err);
             });
         }
+
+
+
 
     </script>
     <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
