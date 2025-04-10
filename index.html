@@ -79,9 +79,9 @@
     <h2>Nhập dữ liệu</h2>
     <textarea id="inputData" rows="5" placeholder="Dán dữ liệu vào đây...✍️"></textarea>
     <button class="sc-a" onclick="processData()">Xử lý</button>
-    <!-- <button onclick="copyData()">Sao chép dữ liệu</button> -->
 
     <h2>Kết quả</h2>
+    <p id="summary"></p>
     <table>
         <thead>
             <tr>
@@ -104,17 +104,17 @@
             let data = [];
 
             rows.forEach(row => {
-                // Xóa emoji và dấu cách thừa
-                row = row.replace(/[\uD800-\uDFFF]./g, "").trim();
+                // Xóa emoji và khoảng trắng thừa
+                row = row.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, "").trim();
 
-                // Tách thành 3 cột dựa vào khoảng trắng lớn
+                // Tách theo khoảng trắng lớn
                 let columns = row.split(/\s{2,}/).map(col => col.trim());
 
                 columns.forEach(col => {
-                    let match = col.match(/(.+?)\s*-\s*([\d.]+)\s*công/i);
+                    let match = col.match(/(.+?)[:\-]\s*([\d.,]+)\s*công/i);
                     if (match) {
                         let name = match[1].trim();
-                        let cong = parseFloat(match[2].trim());
+                        let cong = parseFloat(match[2].replace(',', '.').trim());
                         if (!isNaN(cong)) {
                             data.push({ name, cong });
                         }
@@ -122,16 +122,15 @@
                 });
             });
 
-            // Nếu không có dữ liệu hợp lệ, báo lỗi
             if (data.length === 0) {
                 alert("Không có dữ liệu hợp lệ! Vui lòng kiểm tra lại.");
                 return;
             }
 
-            // Sắp xếp theo số công từ cao đến thấp
-            data.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+            // Sắp xếp theo công giảm dần
+            data.sort((a, b) => b.cong - a.cong);
 
-
+            // Hiển thị bảng
             let tableBody = document.getElementById("tableBody");
             tableBody.innerHTML = "";
             data.forEach(({ name, cong }) => {
@@ -150,30 +149,12 @@
                 tableBody.appendChild(row);
             });
 
-            // Hiển thị thông báo thành công
+            // Hiển thị tổng
+            let totalCong = data.reduce((sum, item) => sum + item.cong, 0);
+            document.getElementById("summary").innerText =
+                `👷‍♂️ Tổng công nhân: ${data.length}, 🧮 Tổng công: ${totalCong.toFixed(2)} công`;
+
             alert("Dữ liệu đã được xử lý thành công!");
-        }
-
-        function copyData() {
-            let tableBody = document.getElementById("tableBody");
-            let rows = tableBody.querySelectorAll("tr");
-            let textToCopy = "Tên - Công\n";
-
-            rows.forEach(row => {
-                let cols = row.querySelectorAll("td");
-                let name = cols[0].textContent.trim();
-                let cong = cols[1].textContent.trim();
-
-                // Thêm dấu ' trước số công để tránh lỗi định dạng ngày
-                textToCopy += `${name} - '${cong} công\n`;
-            });
-
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                alert("Dữ liệu đã được sao chép thành công!");
-            }).catch(err => {
-                alert("Lỗi khi sao chép dữ liệu!");
-                console.error(err);
-            });
         }
 
         function copyColumn(columnIndex) {
@@ -186,12 +167,12 @@
                 if (cols[columnIndex]) {
                     let value = cols[columnIndex].textContent.trim();
 
-                    // Nếu là cột Công, thay dấu "." thành ","
+                    // Nếu là cột Công, đổi dấu chấm thành dấu phẩy
                     if (columnIndex === 1) {
                         value = value.replace(".", ",");
                     }
 
-                    textToCopy += value + "\n";
+                    textToCopy += value +"\n"
                 }
             });
 
@@ -202,10 +183,6 @@
                 console.error(err);
             });
         }
-
-
-
-
     </script>
     <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
 </body>
